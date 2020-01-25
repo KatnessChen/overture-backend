@@ -28,9 +28,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', (req, res) => {
-  res.send('Hello Overture!!');
-})
 app.use('/article', article);
 app.use('/category', category);
 
