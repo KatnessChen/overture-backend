@@ -3,6 +3,8 @@ var router = express.Router();
 var firebaseDB = require('../connections/firebase_admin.js');
 var categoriesRef = firebaseDB.ref('/categories');
 
+var { checkAuthority } = require('../authority');
+
 router.get('/', (req, res, next) => {
   let result = [];
   categoriesRef.once('value').then((snapshot) => {
@@ -18,7 +20,7 @@ router.get('/', (req, res, next) => {
   })
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAuthority, (req, res, next) => {
   const name = req.body.name || '(Empty)';
   categoriesRef.push({
     name
@@ -26,16 +28,18 @@ router.post('/', (req, res, next) => {
   res.send('post success');
 });
 
-router.delete('/delete', (req, res, next) => {
+router.delete('/delete', checkAuthority, (req, res, next) => {
   // TODO 後端可能要再驗證一次
   const categoryId = req.body.categoryId;
   const categoryRef = categoriesRef.child(categoryId);
   if (categoryRef) {
-    categoryRef.remove();
+    categoryRef.remove().then(() => {
+      res.send();
+    });
   }
 })
 
-router.put('/rename', (req, res, next) => {
+router.put('/rename', checkAuthority, (req, res, next) => {
   const categoryId = req.body.categoryId;
   const categoryName = req.body.categoryName;
   console.log(categoryId, categoryName);
@@ -43,6 +47,8 @@ router.put('/rename', (req, res, next) => {
   if (categoryRef) {
     categoryRef.update({
       name: categoryName,
+    }).then(() => {
+      res.send();
     });
   }
 })

@@ -4,10 +4,10 @@ var firebaseDB = require('../connections/firebase_admin.js');
 var articlesRef = firebaseDB.ref('/articles');
 var categoriesRef = firebaseDB.ref('/categories');
 
-/* GET home page. */
+var { checkAuthority } = require('../authority');
+
 router.get('/', (req, res, next) => {
   let result = [];
-  // console.log(articlesRef);
 
   articlesRef.orderByChild('timestamp').once('value').then((articles) => {
     categoriesRef.once('value').then((categories) => {
@@ -30,7 +30,7 @@ router.get('/', (req, res, next) => {
   });
 });
 
-router.put('/update', (req, res, next) => {
+router.put('/update', checkAuthority, (req, res, next) => {
 
   const title = req.body.title || '(Empty)';
   const content = req.body.content || '(Empty)';
@@ -45,7 +45,7 @@ router.put('/update', (req, res, next) => {
   })
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAuthority, (req, res, next) => {
   const title = req.body.title || '(Empty)';
   const content = req.body.content || '(Empty)';
   const categoryId = req.body.categoryId || '-LwCRXT7ab4zYF-GzAlk';
@@ -60,12 +60,13 @@ router.post('/', (req, res, next) => {
   })
 });
 
-router.delete('/delete', (req, res, next) => {
+router.delete('/delete', checkAuthority, (req, res, next) => {
   const articleId = req.body.id;
   const articleRef = articlesRef.child(articleId);
   if (articleRef) {
-    console.log('remove');
-    articleRef.remove();
+    articleRef.remove().then(() => {
+      res.send();
+    });
   }
 });
 
